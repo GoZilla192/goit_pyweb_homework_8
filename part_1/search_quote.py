@@ -10,21 +10,21 @@ from caching_redis import (
 )
 
 
-def get_quotes_for_tag(tag: str):
+def get_quotes_by_tag(tag: str):
     return Quote.objects(tags__regex=f"^{tag}")
 
 
-def get_author_for_name(name: str):
+def get_author_by_name(name: str):
     return Author.objects(fullname__regex=f"^{name}")
 
 
-def get_quotes_for_tags(tags: list[str]) -> QuerySet:
+def get_quotes_by_tags(tags: list[str]) -> QuerySet:
     if quotes := get_quotes_by_tags_cache(tags):
         return [quotes]
 
     quotes = Quote.objects(tags__in=tags)
     if not quotes:
-        return get_quotes_for_tag(tags[0])
+        return get_quotes_by_tag(tags[0])
 
     quotes_string = ""
     for quote in quotes:
@@ -35,13 +35,13 @@ def get_quotes_for_tags(tags: list[str]) -> QuerySet:
     return quotes
 
 
-def get_quotes_for_names(names: list[str]) -> list[Quote]:
+def get_quotes_by_author_name(names: list[str]) -> list[Quote]:
     if quotes := get_quotes_by_author_names_cache(names):
         return quotes
 
     authors = Author.objects(fullname__in=names)
     if not authors:
-        authors = get_author_for_name(names[0])
+        authors = get_author_by_name(names[0])
 
     quotes_to_return = []
     for author in authors:
@@ -51,9 +51,6 @@ def get_quotes_for_names(names: list[str]) -> list[Quote]:
 
     set_quotes_by_author_names_cache(names, quotes_to_return)
     return quotes_to_return
-
-
-get_quotes_for_names(["St"])
 
 
 def display_quotes(quotes: QuerySet | list[Quote] | list[dict]) -> None:
@@ -84,10 +81,10 @@ def main():
 
 if __name__ == "__main__":
     COMMANDS = {
-        "tag": get_quotes_for_tags,
-        "tags": get_quotes_for_tags,
-        "name": get_quotes_for_names,
-        "names": get_quotes_for_names,
+        "tag": get_quotes_by_tags,
+        "tags": get_quotes_by_tags,
+        "name": get_quotes_by_author_name,
+        "names": get_quotes_by_author_name,
     }
 
     main()
